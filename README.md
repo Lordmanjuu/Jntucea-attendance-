@@ -1,80 +1,118 @@
-# attend. — JNTUACEA Attendance Portal
+# attend.
 
-A clean, minimalist attendance tracker for JNTUACEA students.
-Built on top of classattendance.in — no separate credentials needed.
+> Subject-wise attendance tracker for JNTUACEA students.
+
+[![Python](https://img.shields.io/badge/Python-3.11-black?style=flat-square)](https://python.org)
+[![Flask](https://img.shields.io/badge/Flask-3.0-black?style=flat-square)](https://flask.palletsprojects.com)
+[![License](https://img.shields.io/badge/License-MIT-black?style=flat-square)](LICENSE)
 
 ---
 
-## Files
+## Overview
+
+**attend.** is a lightweight web application that fetches and presents attendance data from the JNTUACEA student portal (`classattendance.in`) in a clean, readable interface. Students enter their existing portal credentials — no separate account needed.
+
+The app computes attendance percentages per subject, calculates how many classes can be skipped or must be attended to maintain the 75% threshold, and presents a day-by-day breakdown on demand.
+
+---
+
+## Features
+
+- **Subject-wise breakdown** — percentage, present/absent count, and status for every subject
+- **Smart calculator** — tells you exactly how many classes to attend or how many you can still skip per subject and overall
+- **Day-by-day drill-down** — click any subject to expand a full date-wise Present / Absent history
+- **Instant analysis** — color-coded status (safe / at-risk / critical) with actionable alerts
+- **No data storage** — credentials are used solely to fetch data from the portal and discarded immediately
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Backend | Python · Flask |
+| Scraping | Requests · BeautifulSoup4 |
+| Frontend | HTML · CSS · Vanilla JS |
+| Server | Gunicorn |
+
+---
+
+## Project Structure
 
 ```
 attend-web/
-├── app.py            ← Flask backend + API route
-├── scraper.py        ← classattendance.in scraper
+├── app.py               # Flask application & API routes
+├── scraper.py           # Portal login & attendance scraper
 ├── templates/
-│   └── index.html    ← Minimalist frontend
+│   └── index.html       # Frontend (single-page)
 ├── requirements.txt
-└── Procfile          ← For Render deployment
+└── Procfile
 ```
 
 ---
 
-## Run Locally
+## API
 
-```bash
-pip install -r requirements.txt
-python app.py
-# Open http://localhost:5000
-```
+### `POST /api/attendance`
 
----
+Authenticates with the portal and returns full attendance data.
 
-## 🚀 Host FREE on Render.com (Recommended)
-
-### Step 1 — Push code to GitHub
-1. Create a free account at github.com
-2. Create a new repository (e.g. "jntua-attend")
-3. Upload all files (drag & drop on GitHub website works fine)
-
-### Step 2 — Deploy on Render
-1. Go to https://render.com → Sign up free with GitHub
-2. Click **"New +"** → **"Web Service"**
-3. Connect your GitHub repo
-4. Fill in settings:
-   - **Name:** jntua-attend (anything you like)
-   - **Runtime:** Python 3
-   - **Build Command:** `pip install -r requirements.txt`
-   - **Start Command:** `gunicorn app:app`
-   - **Instance Type:** Free
-5. Click **"Create Web Service"**
-6. Wait ~2 minutes for deploy
-7. Your site is live at: `https://jntua-attend.onrender.com`
-
-> ⚠️ Free Render apps sleep after 15 min of inactivity.
-> First load after sleep takes ~30 seconds. This is normal on the free tier.
-
----
-
-## 🌐 Other Free Hosting Options
-
-### Option B — Railway.app
-1. railway.app → New Project → Deploy from GitHub
-2. Select your repo
-3. Add variable: PORT = 5000
-4. Deploy — gets a free .railway.app domain
-
-### Option C — Vercel (needs vercel.json)
-Add this file as vercel.json:
+**Request**
 ```json
 {
-  "builds": [{ "src": "app.py", "use": "@vercel/python" }],
-  "routes": [{ "src": "/(.*)", "dest": "app.py" }]
+  "username": "22BD1A0501",
+  "password": "yourpassword"
 }
 ```
-Then: `npm i -g vercel && vercel --prod`
+
+**Response**
+```json
+{
+  "name": "Arjun Reddy",
+  "roll": "22BD1A0501",
+  "branch": "CSE",
+  "overall": 83.2,
+  "present": 151,
+  "total": 182,
+  "skip": 4,
+  "need": 0,
+  "subjects": [
+    {
+      "subject": "Machine Learning",
+      "present": 34,
+      "total": 38,
+      "absent": 4,
+      "percent": 89.5,
+      "status": "safe",
+      "skip": 5,
+      "need": 0,
+      "records": [
+        { "date": "01-Jan-2025", "status": "Present" }
+      ]
+    }
+  ]
+}
+```
+
+**Error responses**
+
+| Code | Meaning |
+|---|---|
+| `400` | Missing username or password |
+| `401` | Invalid credentials |
+| `404` | No subjects found for this semester |
+| `500` | Scraper or server error |
 
 ---
 
-## Notes
-- Student credentials are used only to scrape data and are never stored anywhere
-- The app talks directly to classattendance.in on behalf of the student
+## Privacy
+
+- Credentials are transmitted directly to `classattendance.in` and are **never logged or stored**
+- No database, no sessions, no cookies are used on this server
+- All data processing happens in memory and is discarded after the response is sent
+
+---
+
+## License
+
+MIT © 2025 Manjunath — [linkedin.com/in/t-manjunath-27b469381](https://www.linkedin.com/in/t-manjunath-27b469381)
